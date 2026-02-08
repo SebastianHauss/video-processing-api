@@ -1,4 +1,4 @@
-package com.sebastianhauss.videoplatform.domain;
+package com.sebastianhauss.videoplatform.domain.processing;
 
 public enum ProcessingJobType {
     TRANSCODE,

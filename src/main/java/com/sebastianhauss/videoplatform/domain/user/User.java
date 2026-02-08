@@ -1,44 +1,45 @@
-package com.sebastianhauss.videoplatform.domain;
+package com.sebastianhauss.videoplatform.domain.user;
 
+import com.sebastianhauss.videoplatform.domain.video.Video;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "videos")
+@Table(name = "users")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Video {
+public class User {
 
     @Id
     @GeneratedValue
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User owner;
+    @OneToMany(mappedBy = "owner")
+    private List<Video> videos = new ArrayList<>();
 
     @Column(nullable = false)
-    private String originalFilename;
+    private String email;
 
     @Column(nullable = false)
-    private String bucket;
+    private String passwordHash;
 
     @Column(nullable = false, unique = true)
-    private String objectKey;
+    private String username;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private VideoStatus status;
+    private UserRole role;
 
-    private Long sizeBytes;
-    private Integer durationSeconds;
-    private String contentType;
+    @Column(nullable = false)
+    private boolean enabled;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -50,6 +51,7 @@ public class Video {
     public void onCreate() {
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
+        this.enabled = true;
     }
 
     @PreUpdate

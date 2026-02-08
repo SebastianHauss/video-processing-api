@@ -1,5 +1,6 @@
-package com.sebastianhauss.videoplatform.domain;
+package com.sebastianhauss.videoplatform.domain.processing;
 
+import com.sebastianhauss.videoplatform.domain.video.Video;
 import jakarta.persistence.*;
 import lombok.*;
 
