@@ -1,0 +1,26 @@
+meta {
+  name: Create User
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/users
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+    {
+      "username": "seb",
+      "email": "seb@gmail.com",
+      "password": "Blume123"
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

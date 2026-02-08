@@ -1,0 +1,16 @@
+meta {
+  name: Get User By Id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/users/554b6e05-2481-4198-8511-31251b39bf99
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

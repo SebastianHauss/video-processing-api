@@ -1,0 +1,22 @@
+meta {
+  name: Update User
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{BASE_URL}}/users/11db023f-4115-46d5-8c85-d9d3d3661bca
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "username": "sebb"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Get User By Username
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/users?username=seb
+  body: none
+  auth: inherit
+}
+
+params:query {
+  username: seb
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
