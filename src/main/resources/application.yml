@@ -6,9 +6,13 @@ spring:
     multipart:
       max-file-size: 500MB
       max-request-size: 500MB
+      
 minio:
   url: http://localhost
   port: 9000
   user: minio
   password: minio123
   bucket: videos
+
+ffmpeg:
+  path: /usr/bin/ffmpeg

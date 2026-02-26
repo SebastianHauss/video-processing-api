@@ -127,9 +127,16 @@
             <artifactId>jave-core</artifactId>
             <version>3.5.0</version>
         </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/ws.schild/jave-nativebin-osx64 -->
         <dependency>
             <groupId>ws.schild</groupId>
-            <artifactId>jave-nativebin-win64</artifactId>
+            <artifactId>jave-nativebin-osx64</artifactId>
+            <version>3.5.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-nativebin-linux64</artifactId>
             <version>3.5.0</version>
         </dependency>
     </dependencies>

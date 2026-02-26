@@ -33,6 +33,9 @@ public class Video {
     @Column(nullable = false, unique = true)
     private String objectKey;
 
+    @Column(name = "thumbnail_key")
+    private String thumbnailKey;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VideoStatus status;

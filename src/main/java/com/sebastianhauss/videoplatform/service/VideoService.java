@@ -3,14 +3,12 @@ package com.sebastianhauss.videoplatform.service;
 import com.sebastianhauss.videoplatform.domain.user.User;
 import com.sebastianhauss.videoplatform.domain.video.Video;
 import com.sebastianhauss.videoplatform.domain.video.VideoFactory;
-import com.sebastianhauss.videoplatform.domain.video.VideoStatus;
 import com.sebastianhauss.videoplatform.dto.storage.StoredObject;
 import com.sebastianhauss.videoplatform.dto.video.ProcessedVideo;
 import com.sebastianhauss.videoplatform.dto.video.VideoDownload;
 import com.sebastianhauss.videoplatform.dto.video.VideoResponse;
 import com.sebastianhauss.videoplatform.exception.*;
 import com.sebastianhauss.videoplatform.mapper.VideoMapper;
-import com.sebastianhauss.videoplatform.processing.VideoMetadataExtractor;
 import com.sebastianhauss.videoplatform.processing.VideoUploadProcessor;
 import com.sebastianhauss.videoplatform.repository.UserRepository;
 import com.sebastianhauss.videoplatform.repository.VideoRepository;
@@ -47,15 +45,18 @@ public class VideoService {
 
         ProcessedVideo processed = videoUploadProcessor.process(user, file);
 
+        if (!processed.contentType().startsWith("video/")) {
+            throw new InvalidFileException("Upload file is not a valid video");
+        }
+
         Video video = videoFactory.createUploadedVideo(
                 user,
                 processed.storedObject(),
                 file,
                 processed.contentType(),
-                processed.durationMillis()
+                processed.durationMillis(),
+                processed.thumbnailKey()
         );
-
-        video.setStatus(VideoStatus.PROCESSING);
 
         return videoMapper.toResponse(videoRepository.save(video));
     }
@@ -122,9 +123,13 @@ public class VideoService {
     }
 
     private boolean isValidVideoType(String contentType) {
-        return contentType != null && (
-                contentType.startsWith("video/") ||
-                        contentType.equals("application/octet-stream")
-        );
+        if (contentType == null) return false;
+
+        if (contentType.startsWith("video/")) return true;
+
+        // octet-stream nur temporär erlauben — echter Check passiert via FFmpeg im Processor
+        if (contentType.equals("application/octet-stream")) return true;
+
+        return false;
     }
 }

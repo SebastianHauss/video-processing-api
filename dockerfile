@@ -1,9 +1,10 @@
 FROM eclipse-temurin:21-jdk
 
-# FFmpeg installieren
 RUN apt-get update && \
     apt-get install -y ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
-# Verify installation
-RUN ffmpeg -version
+WORKDIR /app
+COPY target/video-platform-0.0.1-SNAPSHOT.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

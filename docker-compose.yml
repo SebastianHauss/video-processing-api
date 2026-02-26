@@ -1,4 +1,3 @@
----
 services:
   postgres:
     image: postgres:16
@@ -11,6 +10,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
   minio:
     image: minio/minio:latest
     container_name: videoplatform-minio
@@ -23,6 +23,23 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+
+  app:
+    build: .
+    container_name: videoplatform-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/videoplatform
+      SPRING_DATASOURCE_USERNAME: video
+      SPRING_DATASOURCE_PASSWORD: video
+      MINIO_URL: http://minio
+      MINIO_PORT: 9000
+      FFMPEG_PATH: /usr/bin/ffmpeg
+    depends_on:
+      - postgres
+      - minio
+
 volumes:
-  postgres_data: null
-  minio_data: null
+  postgres_data:
+  minio_data:

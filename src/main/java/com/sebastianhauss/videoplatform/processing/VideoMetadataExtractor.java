@@ -1,5 +1,8 @@
 package com.sebastianhauss.videoplatform.processing;
 
+import com.sebastianhauss.videoplatform.config.SystemFFmpegLocator;
+import com.sebastianhauss.videoplatform.dto.video.VideoMetadata;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ws.schild.jave.MultimediaObject;
@@ -9,21 +12,42 @@ import java.io.File;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class VideoMetadataExtractor {
 
-    public Long extractDurationInMillis(File videoFile) {
-        try {
-            MultimediaObject multimediaObject = new MultimediaObject(videoFile);
-            MultimediaInfo info = multimediaObject.getInfo();
+    private final SystemFFmpegLocator ffmpegLocator;
 
-            long durationMillis = info.getDuration();
-            log.info("Extracted duration: {} ms ({} seconds)",
-                    durationMillis, durationMillis / 1000.0);
-            return durationMillis;
+    public VideoMetadata extract(File videoFile) {
+        try {
+            MultimediaInfo info = new MultimediaObject(videoFile, ffmpegLocator).getInfo();
+
+            long duration = info.getDuration();
+            String contentType = mapFormatToContentType(info.getFormat());
+
+            log.info("Extracted duration: {} ms ({} seconds)", duration, duration / 1000.0);
+
+            return new VideoMetadata(contentType, duration);
 
         } catch (Exception e) {
-            log.error("Failed to extract video duration", e);
+            log.error("Failed to extract video metadata", e);
             return null;
         }
+    }
+
+    private String mapFormatToContentType(String format) {
+        if (format == null) return null;
+
+        if (format.contains("mp4") || format.contains("mov")) return "video/mp4";
+        if (format.contains("matroska")) return "video/x-matroska";
+        if (format.contains("webm")) return "video/webm";
+        if (format.contains("avi")) return "video/x-msvideo";
+        if (format.contains("flv")) return "video/x-flv";
+        if (format.contains("mpegts")) return "video/mp2t";
+        if (format.contains("3gp")) return "video/3gpp";
+        if (format.contains("wmv") || format.contains("asf")) return "video/x-ms-wmv";
+        if (format.contains("ogg")) return "video/ogg";
+        if (format.contains("m4v")) return "video/x-m4v";
+
+        return null;
     }
 }

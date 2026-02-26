@@ -13,7 +13,8 @@ public class VideoFactory {
             StoredObject stored,
             MultipartFile file,
             String contentType,
-            Long durationMillis
+            Long durationMillis,
+            String thumbnailKey
     ) {
         return Video.builder()
                 .owner(owner)
@@ -23,6 +24,7 @@ public class VideoFactory {
                 .sizeBytes(file.getSize())
                 .contentType(contentType)
                 .durationMillis(durationMillis)
+                .thumbnailKey(thumbnailKey)
                 .status(VideoStatus.UPLOADED)
                 .build();
     }
