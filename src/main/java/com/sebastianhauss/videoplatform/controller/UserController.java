@@ -21,7 +21,6 @@ public class UserController {
 
     private final UserService userService;
 
-    // List all users with pagination
     @GetMapping
     public ResponseEntity<Page<UserResponseDto>> getAllUsers(Pageable pageable) {
         Page<UserResponseDto> users = userService.getAllUsers(pageable);

@@ -16,3 +16,7 @@ minio:
 
 ffmpeg:
   path: /usr/bin/ffmpeg
+
+jwt:
+  secret: 2FyufRkgccx+HkVvA/83x8B1dLFrD3LjCg+3IOJhsV0=
+  expiration: 86400000

@@ -19,6 +19,11 @@ public class VideoController {
 
     private final VideoService videoService;
 
+    @GetMapping()
+    public ResponseEntity<List<VideoResponse>> getAllVideos() {
+        return ResponseEntity.ok(videoService.getAllVideos());
+    }
+
     @GetMapping("/users/{userId}")
     public ResponseEntity<List<VideoResponse>> getVideosOfUser(@PathVariable UUID userId) {
         return ResponseEntity.ok(videoService.getVideosOfUser(userId));

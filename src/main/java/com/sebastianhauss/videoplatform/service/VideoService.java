@@ -36,6 +36,16 @@ public class VideoService {
     private final VideoFactory videoFactory;
     private final VideoUploadProcessor videoUploadProcessor;
 
+    public List<VideoResponse> getAllVideos() {
+        List<Video> videos = videoRepository.findAll();
+        return videoMapper.toResponseList(videos);
+    }
+
+    public List<VideoResponse> getVideosOfUser(UUID userId) {
+        List<Video> videos = videoRepository.findVideosByOwner_Id(userId);
+        return videoMapper.toResponseList(videos);
+    }
+
     @Transactional
     public VideoResponse uploadVideo(UUID userId, MultipartFile file) {
         validateFile(file);
@@ -59,11 +69,6 @@ public class VideoService {
         );
 
         return videoMapper.toResponse(videoRepository.save(video));
-    }
-
-    public List<VideoResponse> getVideosOfUser(UUID userId) {
-        List<Video> videos = videoRepository.findVideosByOwner_Id(userId);
-        return videoMapper.toResponseList(videos);
     }
 
     public VideoDownload downloadVideo(UUID videoId) {
