@@ -6,8 +6,7 @@ import com.sebastianhauss.videoplatform.domain.user.User;
 import com.sebastianhauss.videoplatform.domain.user.UserRole;
 import com.sebastianhauss.videoplatform.dto.user.UserCreateDto;
 import com.sebastianhauss.videoplatform.dto.user.UserResponseDto;
-import com.sebastianhauss.videoplatform.exception.UserAlreadyExistsException;
-import com.sebastianhauss.videoplatform.exception.UserNotFoundException;
+import com.sebastianhauss.videoplatform.exception.ConflictException;
 import com.sebastianhauss.videoplatform.mapper.UserMapper;
 import com.sebastianhauss.videoplatform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +27,10 @@ public class AuthService {
 
     public UserResponseDto register(UserCreateDto dto) {
         if (userRepository.existsByUsername(dto.username())) {
-            throw new UserAlreadyExistsException();
+            throw new ConflictException("Username already exists");
         }
         if (userRepository.existsByEmail(dto.email())) {
-            throw new UserAlreadyExistsException();
+            throw new ConflictException("Email already exists");
         }
         User user = new User();
         user.setUsername(dto.username());
@@ -46,7 +45,7 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new BadCredentialsException("Invalid username or password");

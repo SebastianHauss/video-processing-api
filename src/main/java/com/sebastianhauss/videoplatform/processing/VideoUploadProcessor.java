@@ -4,7 +4,6 @@ import com.sebastianhauss.videoplatform.domain.user.User;
 import com.sebastianhauss.videoplatform.dto.storage.StoredObject;
 import com.sebastianhauss.videoplatform.dto.video.ProcessedVideo;
 import com.sebastianhauss.videoplatform.dto.video.VideoMetadata;
-import com.sebastianhauss.videoplatform.exception.ErrorCode;
 import com.sebastianhauss.videoplatform.exception.StorageException;
 import com.sebastianhauss.videoplatform.storage.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -65,11 +64,7 @@ public class VideoUploadProcessor {
             return new ProcessedVideo(storedObject, duration, contentType, thumbnailKey);
 
         } catch (IOException e) {
-            throw new StorageException(
-                    ErrorCode.STORAGE_UPLOAD_FAILED,
-                    "Could not process file",
-                    e
-            );
+            throw new StorageException("Could not process file", e);
         } finally {
             deleteTempFile(tempFile);
             deleteTempFile(tempThumbnail);

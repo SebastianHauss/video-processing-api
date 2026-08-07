@@ -2,7 +2,7 @@ package com.sebastianhauss.videoplatform.service;
 
 import com.sebastianhauss.videoplatform.domain.user.User;
 import com.sebastianhauss.videoplatform.domain.video.Video;
-import com.sebastianhauss.videoplatform.domain.video.VideoFactory;
+import com.sebastianhauss.videoplatform.domain.video.VideoStatus;
 import com.sebastianhauss.videoplatform.dto.storage.StoredObject;
 import com.sebastianhauss.videoplatform.dto.video.ProcessedVideo;
 import com.sebastianhauss.videoplatform.dto.video.VideoDownload;
@@ -16,6 +16,7 @@ import com.sebastianhauss.videoplatform.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,21 +30,20 @@ import java.util.UUID;
 @Slf4j
 public class VideoService {
 
+    private static final long MAX_SIZE_BYTES = 500L * 1024 * 1024;
+
     private final VideoRepository videoRepository;
     private final StorageService storageService;
     private final UserRepository userRepository;
     private final VideoMapper videoMapper;
-    private final VideoFactory videoFactory;
     private final VideoUploadProcessor videoUploadProcessor;
 
     public List<VideoResponse> getAllVideos() {
-        List<Video> videos = videoRepository.findAll();
-        return videoMapper.toResponseList(videos);
+        return videoMapper.toResponseList(videoRepository.findAll());
     }
 
     public List<VideoResponse> getVideosOfUser(UUID userId) {
-        List<Video> videos = videoRepository.findVideosByOwner_Id(userId);
-        return videoMapper.toResponseList(videos);
+        return videoMapper.toResponseList(videoRepository.findVideosByOwner_Id(userId));
     }
 
     @Transactional
@@ -51,37 +51,36 @@ public class VideoService {
         validateFile(file);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found"));
 
         ProcessedVideo processed = videoUploadProcessor.process(user, file);
 
         if (!processed.contentType().startsWith("video/")) {
-            throw new InvalidFileException("Upload file is not a valid video");
+            throw new BadRequestException("Upload file is not a valid video");
         }
 
-        Video video = videoFactory.createUploadedVideo(
-                user,
-                processed.storedObject(),
-                file,
-                processed.contentType(),
-                processed.durationMillis(),
-                processed.thumbnailKey()
-        );
+        Video video = Video.builder()
+                .owner(user)
+                .bucket(processed.storedObject().bucket())
+                .objectKey(processed.storedObject().objectKey())
+                .originalFilename(file.getOriginalFilename())
+                .sizeBytes(file.getSize())
+                .contentType(processed.contentType())
+                .durationMillis(processed.durationMillis())
+                .thumbnailKey(processed.thumbnailKey())
+                .status(VideoStatus.UPLOADED)
+                .build();
 
         return videoMapper.toResponse(videoRepository.save(video));
     }
 
     public VideoDownload downloadVideo(UUID videoId) {
         Video video = videoRepository.findById(videoId)
-                .orElseThrow(() -> new VideoNotFoundException(videoId));
+                .orElseThrow(() -> new NotFoundException("Video with id '" + videoId + "' not found"));
 
         try {
-            StoredObject stored = new StoredObject(
-                    video.getBucket(),
-                    video.getObjectKey()
-            );
-
-            InputStream stream = storageService.download(stored);
+            InputStream stream = storageService.download(
+                    new StoredObject(video.getBucket(), video.getObjectKey()));
 
             return new VideoDownload(
                     new InputStreamResource(stream),
@@ -89,16 +88,16 @@ public class VideoService {
                     video.getContentType()
             );
         } catch (Exception e) {
-            throw new VideoDownloadException("Failed to download video", e);
+            throw new StorageException("Failed to download video", e);
         }
     }
 
     public void deleteVideo(UUID videoId, UUID userId) {
         Video video = videoRepository.findById(videoId)
-                .orElseThrow(() -> new VideoNotFoundException(videoId));
+                .orElseThrow(() -> new NotFoundException("Video with id '" + videoId + "' not found"));
 
         if (!video.getOwner().getId().equals(userId)) {
-            throw new UnauthorizedException("Not your video!");
+            throw new ForbiddenException("Not your video!");
         }
 
         storageService.delete(video.getObjectKey());
@@ -111,30 +110,20 @@ public class VideoService {
 
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new InvalidFileException("File is empty");
+            throw new BadRequestException("File is empty");
         }
-
-        // Max size (e.g., 500MB)
-        long maxSize = 500 * 1024 * 1024;
-        if (file.getSize() > maxSize) {
-            throw new FileTooLargeException("File exceeds 500MB");
+        if (file.getSize() > MAX_SIZE_BYTES) {
+            throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "File exceeds 500MB");
         }
-
-        // Validate content type
-        String contentType = file.getContentType();
-        if (!isValidVideoType(contentType)) {
-            throw new InvalidFileTypeException("Only video files allowed");
+        if (!isValidVideoType(file.getContentType())) {
+            throw new BadRequestException("Only video files allowed");
         }
     }
 
     private boolean isValidVideoType(String contentType) {
         if (contentType == null) return false;
-
         if (contentType.startsWith("video/")) return true;
-
-        // octet-stream nur temporär erlauben — echter Check passiert via FFmpeg im Processor
-        if (contentType.equals("application/octet-stream")) return true;
-
-        return false;
+        // octet-stream only tentatively allowed — real check happens via FFmpeg in the processor
+        return contentType.equals("application/octet-stream");
     }
 }

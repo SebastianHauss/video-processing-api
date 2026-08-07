@@ -1,12 +1,11 @@
 package com.sebastianhauss.videoplatform.dto.error;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record ErrorResponse(
-        LocalDateTime timestamp,
+        Instant timestamp,
         int status,
         String error,
-        String errorCode,
         String message
 ) {
 }

@@ -1,14 +1,9 @@
 package com.sebastianhauss.videoplatform.exception;
 
-import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
-@Getter
-public class StorageException extends RuntimeException {
-
-    private final ErrorCode errorCode;
-
-    public StorageException(ErrorCode errorCode, String message, Throwable cause) {
-        super(message, cause);
-        this.errorCode = errorCode;
+public class StorageException extends ApiException {
+    public StorageException(String message, Throwable cause) {
+        super(HttpStatus.SERVICE_UNAVAILABLE, message, cause);
     }
 }

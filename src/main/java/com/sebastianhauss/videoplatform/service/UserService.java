@@ -4,9 +4,8 @@ import com.sebastianhauss.videoplatform.domain.user.User;
 import com.sebastianhauss.videoplatform.dto.user.UserCreateDto;
 import com.sebastianhauss.videoplatform.dto.user.UserResponseDto;
 import com.sebastianhauss.videoplatform.dto.user.UserUpdateDto;
-import com.sebastianhauss.videoplatform.exception.DuplicateEmailException;
-import com.sebastianhauss.videoplatform.exception.DuplicateUsernameException;
-import com.sebastianhauss.videoplatform.exception.UserNotFoundException;
+import com.sebastianhauss.videoplatform.exception.ConflictException;
+import com.sebastianhauss.videoplatform.exception.NotFoundException;
 import com.sebastianhauss.videoplatform.mapper.UserMapper;
 import com.sebastianhauss.videoplatform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,19 +28,19 @@ public class UserService {
 
     public UserResponseDto getUserById(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found"));
         return userMapper.toResponseDto(user);
     }
 
     public UserResponseDto getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new NotFoundException("User not found"));
         return userMapper.toResponseDto(user);
     }
 
     public UserResponseDto getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new NotFoundException("User not found"));
         return userMapper.toResponseDto(user);
     }
 
@@ -58,11 +57,11 @@ public class UserService {
     @Transactional
     public UserResponseDto createUser(UserCreateDto dto) {
         if (userRepository.existsByUsername(dto.username())) {
-            throw new DuplicateUsernameException();
+            throw new ConflictException("Username already exists");
         }
 
         if (userRepository.existsByEmail(dto.email())) {
-            throw new DuplicateEmailException(dto.email());
+            throw new ConflictException("Email " + dto.email() + " already exists");
         }
 
         User user = userMapper.toEntity(dto);
@@ -75,12 +74,12 @@ public class UserService {
     @Transactional
     public UserResponseDto updateUser(UUID userId, UserUpdateDto dto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found"));
 
         // 2. Check if email is being changed and is duplicate
         if (dto.email() != null && !dto.email().equals(user.getEmail())) {
             if (userRepository.existsByEmail(dto.email())) {
-                throw new DuplicateEmailException(dto.email());
+                throw new ConflictException("Email " + dto.email() + " already exists");
             }
         }
 
@@ -92,7 +91,7 @@ public class UserService {
     @Transactional
     public void deleteUser(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException("User with id '" + userId + "' not found"));
         userRepository.delete(user);
     }
 

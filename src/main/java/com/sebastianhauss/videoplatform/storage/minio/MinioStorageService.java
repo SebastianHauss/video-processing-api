@@ -1,7 +1,6 @@
 package com.sebastianhauss.videoplatform.storage.minio;
 
 import com.sebastianhauss.videoplatform.dto.storage.StoredObject;
-import com.sebastianhauss.videoplatform.exception.ErrorCode;
 import com.sebastianhauss.videoplatform.exception.StorageException;
 import com.sebastianhauss.videoplatform.storage.StorageService;
 import io.minio.GetObjectArgs;
@@ -42,7 +41,7 @@ public class MinioStorageService implements StorageService {
             return new StoredObject(minioProperties.getBucket(), objectKey);
         } catch (Exception e) {
             log.error("Failed to upload file to MinIO: {}", objectKey, e);
-            throw new StorageException(ErrorCode.STORAGE_UPLOAD_FAILED, "Could not upload file", e);
+            throw new StorageException("Could not upload file", e);
         }
     }
 
@@ -62,7 +61,7 @@ public class MinioStorageService implements StorageService {
             return new StoredObject(minioProperties.getBucket(), objectKey);
         } catch (Exception e) {
             log.error("Failed to upload file to MinIO: {}", objectKey, e);
-            throw new StorageException(ErrorCode.STORAGE_UPLOAD_FAILED, "Could not upload file", e);
+            throw new StorageException("Could not upload file", e);
         }
     }
 
@@ -77,7 +76,7 @@ public class MinioStorageService implements StorageService {
             );
         } catch (Exception e) {
             log.error("Failed to download file from MinIO: {}", stored.objectKey(), e);
-            throw new StorageException(ErrorCode.STORAGE_DOWNLOAD_FAILED, "Could not download file", e);
+            throw new StorageException("Could not download file", e);
         }
     }
 
@@ -95,7 +94,7 @@ public class MinioStorageService implements StorageService {
 
         } catch (Exception e) {
             log.error("Failed to delete file from MinIO: {}", objectKey, e);
-            throw new StorageException(ErrorCode.STORAGE_DELETE_FAILED, "Could not delete file", e);
+            throw new StorageException("Could not delete file", e);
         }
     }
 }

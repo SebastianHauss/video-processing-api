@@ -4,55 +4,48 @@ import com.sebastianhauss.videoplatform.dto.error.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(VideoNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleVideoNotFound(VideoNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, ex.getErrorCode(), ex.getMessage());
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ErrorResponse> handleApi(ApiException ex) {
+        return buildError(ex.getStatus(), ex.getMessage());
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, ex.getErrorCode(), ex.getMessage());
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+        return buildError(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    @ExceptionHandler(StorageException.class)
-    public ResponseEntity<ErrorResponse> handleStorage(StorageException ex) {
-        return buildError(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(), ex.getMessage());
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .findFirst()
+                .orElse("Validation failed");
+        return buildError(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
         log.error("Unexpected error", ex);
-        return buildError(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                ErrorCode.INTERNAL_ERROR,
-                "Unexpected server error"
-        );
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error");
     }
 
-    // *************************************
-    // HELPER
-    // *************************************
-
-    private ResponseEntity<ErrorResponse> buildError(
-            HttpStatus status,
-            ErrorCode code,
-            String message
-    ) {
+    private ResponseEntity<ErrorResponse> buildError(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(
                 new ErrorResponse(
-                        LocalDateTime.now(),
+                        Instant.now(),
                         status.value(),
                         status.getReasonPhrase(),
-                        code.name(),
                         message
                 )
         );
