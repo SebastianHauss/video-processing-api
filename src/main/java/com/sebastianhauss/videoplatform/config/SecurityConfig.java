@@ -4,6 +4,7 @@ import com.sebastianhauss.videoplatform.auth.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -41,6 +42,16 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        // Public frontpage + anonymous watching of public/unlisted videos.
+                        // Order matters: the specific authenticated routes come before the
+                        // catch-all "/api/videos/*" so /mine and admin listing stay locked.
+                        .requestMatchers(HttpMethod.GET, "/api/videos/feed").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/videos/mine").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/videos/*/metadata").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/videos/*/stream").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/videos/*").permitAll()
+                        // PRIVATE videos are still rejected in the service layer (403),
+                        // so permitAll here only opens the door to the visibility check.
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -55,8 +66,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
+        // Let the browser read the streaming/range headers on cross-origin media loads.
+        config.setExposedHeaders(List.of("Accept-Ranges", "Content-Range", "Content-Length"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

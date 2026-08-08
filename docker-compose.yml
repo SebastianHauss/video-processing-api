@@ -24,24 +24,6 @@ services:
     volumes:
       - minio_data:/data
 
-  app:
-    build: .
-    container_name: videoplatform-app
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/videoplatform
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-video}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set (see .env.example)}
-      MINIO_URL: http://minio
-      MINIO_PORT: 9000
-      MINIO_USER: ${MINIO_USER:-minio}
-      MINIO_PASSWORD: ${MINIO_PASSWORD:?MINIO_PASSWORD must be set (see .env.example)}
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (see .env.example)}
-    depends_on:
-      - postgres
-      - minio
-
 volumes:
   postgres_data:
   minio_data:

@@ -1,0 +1,29 @@
+meta {
+  name: Stream Video
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{BASE_URL}}/videos/c95b90a9-2609-40c9-9970-1899ad2e00d2/stream
+  body: none
+  auth: inherit
+}
+
+headers {
+  Range: bytes=0-1048575
+}
+
+docs {
+  Progressive range streaming for <video> players.
+
+  With a Range header the server replies 206 Partial Content plus
+  Accept-Ranges / Content-Range so the client can seek. Remove the Range
+  header to get the whole object (200). Public/unlisted videos stream
+  without auth; private videos are owner-only (403 otherwise).
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

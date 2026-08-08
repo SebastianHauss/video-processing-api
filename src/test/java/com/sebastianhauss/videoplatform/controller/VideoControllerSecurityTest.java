@@ -90,4 +90,20 @@ class VideoControllerSecurityTest {
         mockMvc.perform(get("/api/videos/" + UUID.randomUUID() + "/status"))
                 .andExpect(status().is4xxClientError());
     }
+
+    @Test
+    void feed_isPubliclyAccessible_withoutAuth() throws Exception {
+        when(videoService.getFeed(0, 20)).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/videos/feed"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void mine_unauthenticated_isRejected() throws Exception {
+        // Guards the matcher ordering: /mine must stay authenticated even though
+        // the catch-all GET /api/videos/* is permitAll for public watching.
+        mockMvc.perform(get("/api/videos/mine"))
+                .andExpect(status().is4xxClientError());
+    }
 }

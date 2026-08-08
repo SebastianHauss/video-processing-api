@@ -1,0 +1,26 @@
+meta {
+  name: Get Public Feed
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{BASE_URL}}/videos/feed?page=0&size=20
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 0
+  size: 20
+}
+
+docs {
+  The public frontpage: newest PUBLIC + READY videos. No authentication
+  required. Paginated via page (0-based) and size (max 100).
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

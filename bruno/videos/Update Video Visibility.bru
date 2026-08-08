@@ -1,0 +1,25 @@
+meta {
+  name: Update Video Visibility
+  type: http
+  seq: 10
+}
+
+patch {
+  url: {{BASE_URL}}/videos/c95b90a9-2609-40c9-9970-1899ad2e00d2/visibility?visibility=PUBLIC
+  body: none
+  auth: inherit
+}
+
+params:query {
+  visibility: PUBLIC
+}
+
+docs {
+  Owner-only: change who can watch this video. visibility is one of
+  PUBLIC, UNLISTED, PRIVATE. Only PUBLIC + READY videos show on the feed.
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -108,6 +108,24 @@ public class MinioStorageService implements StorageService {
     }
 
     @Override
+    public InputStream downloadRange(StoredObject stored, long offset, long length) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(minioProperties.getBucket())
+                            .object(stored.objectKey())
+                            .offset(offset)
+                            .length(length)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Failed to download byte range [{}, +{}) from MinIO: {}",
+                    offset, length, stored.objectKey(), e);
+            throw new StorageException("Could not download file range", e);
+        }
+    }
+
+    @Override
     public void delete(String objectKey) {
         try {
             minioClient.removeObject(

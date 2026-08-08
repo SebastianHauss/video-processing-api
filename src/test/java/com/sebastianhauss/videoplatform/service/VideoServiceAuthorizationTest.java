@@ -4,6 +4,8 @@ import com.sebastianhauss.videoplatform.domain.user.User;
 import com.sebastianhauss.videoplatform.domain.user.UserRole;
 import com.sebastianhauss.videoplatform.domain.video.Video;
 import com.sebastianhauss.videoplatform.domain.video.VideoStatus;
+import com.sebastianhauss.videoplatform.domain.video.VideoVisibility;
+import com.sebastianhauss.videoplatform.dto.video.VideoResponse;
 import com.sebastianhauss.videoplatform.dto.video.VideoStatusResponse;
 import com.sebastianhauss.videoplatform.exception.ForbiddenException;
 import com.sebastianhauss.videoplatform.exception.NotFoundException;
@@ -77,6 +79,7 @@ class VideoServiceAuthorizationTest {
                 .originalFilename("clip.mp4")
                 .contentType("video/mp4")
                 .status(VideoStatus.READY)
+                .visibility(VideoVisibility.PRIVATE)
                 .build();
     }
 
@@ -116,6 +119,35 @@ class VideoServiceAuthorizationTest {
                 .isInstanceOf(ForbiddenException.class);
 
         verify(storageService, never()).download(any());
+    }
+
+    @Test
+    void getVideoMetadata_publicVideo_nonOwnerIsAllowed() {
+        video.setVisibility(VideoVisibility.PUBLIC);
+        when(videoRepository.findById(videoId)).thenReturn(Optional.of(video));
+        VideoResponse mapped = new VideoResponse(
+                videoId, "clip.mp4", VideoStatus.READY, VideoVisibility.PUBLIC,
+                0L, 0L, "video/mp4", null, null);
+        when(videoMapper.toResponse(video)).thenReturn(mapped);
+
+        VideoResponse response = videoService.getVideoMetadata(videoId, otherUserId);
+
+        assertThat(response.id()).isEqualTo(videoId);
+    }
+
+    @Test
+    void getVideoMetadata_publicVideo_anonymousIsAllowed() {
+        video.setVisibility(VideoVisibility.PUBLIC);
+        when(videoRepository.findById(videoId)).thenReturn(Optional.of(video));
+        VideoResponse mapped = new VideoResponse(
+                videoId, "clip.mp4", VideoStatus.READY, VideoVisibility.PUBLIC,
+                0L, 0L, "video/mp4", null, null);
+        when(videoMapper.toResponse(video)).thenReturn(mapped);
+
+        // null userId == anonymous caller
+        VideoResponse response = videoService.getVideoMetadata(videoId, null);
+
+        assertThat(response.id()).isEqualTo(videoId);
     }
 
     @Test

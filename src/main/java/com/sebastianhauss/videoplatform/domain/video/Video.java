@@ -40,6 +40,10 @@ public class Video {
     @Column(nullable = false)
     private VideoStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VideoVisibility visibility;
+
     private Long sizeBytes;
 
     @Column(name = "duration_millis")
