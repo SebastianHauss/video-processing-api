@@ -6,24 +6,28 @@ spring:
     multipart:
       max-file-size: 500MB
       max-request-size: 500MB
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
       # Schema is owned by Flyway; Hibernate only checks the entities match it.
       ddl-auto: validate
-      
+
 minio:
-  url: http://localhost
-  port: 9000
-  user: minio
-  password: minio123
-  bucket: videos
+  url: ${MINIO_URL}
+  port: ${MINIO_PORT:9000}
+  user: ${MINIO_USER}
+  password: ${MINIO_PASSWORD}
+  bucket: ${MINIO_BUCKET:videos}
 
 ffmpeg:
   path: ${FFMPEG_PATH:ffmpeg}
 
 processing:
-  poll-interval-ms: 5000
+  poll-interval-ms: ${PROCESSING_POLL_INTERVAL_MS:5000}
 
 jwt:
-  secret: 2FyufRkgccx+HkVvA/83x8B1dLFrD3LjCg+3IOJhsV0=
-  expiration: 86400000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}

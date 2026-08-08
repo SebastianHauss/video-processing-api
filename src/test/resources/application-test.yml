@@ -1,4 +1,6 @@
 ---
+# Test profile: self-contained, no external services. H2 in-memory DB, and
+# dummy minio/jwt values so the Spring context loads without env vars.
 spring:
   datasource:
     driver-class-name: org.h2.Driver
@@ -11,3 +13,14 @@ spring:
   flyway:
     # Migrations are Postgres-specific; tests run on H2 with Hibernate-generated schema.
     enabled: false
+
+minio:
+  url: http://localhost
+  port: 9000
+  user: test
+  password: test-password
+  bucket: test-videos
+
+jwt:
+  secret: 7pVOehmrD38GuiQi1aeztZ0MnMXXVJrAnKVW34StXvA=
+  expiration: 3600000

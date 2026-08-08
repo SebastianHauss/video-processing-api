@@ -5,9 +5,6 @@ spring:
     username: video
     password: video
   jpa:
-    hibernate:
-      # Flyway owns the schema here too; validate against it.
-      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
@@ -15,3 +12,15 @@ spring:
   flyway:
     # Adopt an existing local DB that predates Flyway instead of erroring on it.
     baseline-on-migrate: true
+
+minio:
+  url: http://localhost
+  port: 9000
+  user: minio
+  password: minio123
+  bucket: videos
+
+jwt:
+  # Dev-only throwaway secret so `mvn spring-boot:run -Plocal` works without any
+  # env setup. This is NOT the production key and must never be reused there.
+  secret: ${JWT_SECRET:Y9ckG0KOe2j3epTosmt0SU+3owH4i0nedSlspMxEtis=}
