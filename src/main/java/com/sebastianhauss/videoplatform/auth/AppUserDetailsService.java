@@ -20,10 +20,6 @@ public class AppUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPasswordHash())
-                .roles(user.getRole().name())
-                .build();
+        return new AppUserPrincipal(user);
     }
 }

@@ -58,29 +58,42 @@ public class ThumbnailService {
     }
 
     private void runFfmpeg(List<String> command) throws IOException {
-        Process process = new ProcessBuilder(command)
-                .redirectErrorStream(true)
-                .start();
-
-        String output;
+        // Redirect ffmpeg's (merged) output to a temp file rather than draining the
+        // pipe on this thread. Reading the pipe with readAllBytes() would block until
+        // ffmpeg closes it, which a wedged process never does — so the timeout below
+        // could never fire. Redirecting to a file lets waitFor() actually enforce the cap.
+        File logFile = Files.createTempFile("ffmpeg-", ".log").toFile();
         try {
-            output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            if (!process.waitFor(FFMPEG_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+            Process process = new ProcessBuilder(command)
+                    .redirectErrorStream(true)
+                    .redirectOutput(logFile)
+                    .start();
+
+            boolean finished;
+            try {
+                finished = process.waitFor(FFMPEG_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                process.destroyForcibly();
+                Thread.currentThread().interrupt();
+                throw new IOException("Interrupted while generating thumbnail", e);
+            }
+            if (!finished) {
                 process.destroyForcibly();
                 throw new IOException("ffmpeg timed out after " + FFMPEG_TIMEOUT_SECONDS + "s generating thumbnail");
             }
-        } catch (InterruptedException e) {
-            process.destroyForcibly();
-            Thread.currentThread().interrupt();
-            throw new IOException("Interrupted while generating thumbnail", e);
-        }
 
-        int exitCode = process.exitValue();
-        if (exitCode != 0) {
-            throw new IOException("ffmpeg exited with code " + exitCode + ": " + output.strip());
-        }
-        if (!output.isBlank()) {
-            log.debug("ffmpeg thumbnail output: {}", output.strip());
+            String output = Files.readString(logFile.toPath(), StandardCharsets.UTF_8).strip();
+            int exitCode = process.exitValue();
+            if (exitCode != 0) {
+                throw new IOException("ffmpeg exited with code " + exitCode + ": " + output);
+            }
+            if (!output.isBlank()) {
+                log.debug("ffmpeg thumbnail output: {}", output);
+            }
+        } finally {
+            if (logFile.exists() && !logFile.delete()) {
+                log.debug("Could not delete ffmpeg log temp file: {}", logFile.getAbsolutePath());
+            }
         }
     }
 

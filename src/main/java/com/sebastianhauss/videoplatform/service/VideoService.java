@@ -48,13 +48,13 @@ public class VideoService {
     }
 
     /** Full metadata for a single video (filename, size, duration, status, ...). */
-    public VideoResponse getVideoMetadata(UUID videoId) {
-        return videoMapper.toResponse(requireVideo(videoId));
+    public VideoResponse getVideoMetadata(UUID videoId, UUID userId) {
+        return videoMapper.toResponse(requireOwnedVideo(videoId, userId));
     }
 
     /** Just the processing state, for cheap polling. */
-    public VideoStatusResponse getVideoStatus(UUID videoId) {
-        Video video = requireVideo(videoId);
+    public VideoStatusResponse getVideoStatus(UUID videoId, UUID userId) {
+        Video video = requireOwnedVideo(videoId, userId);
         return new VideoStatusResponse(video.getId(), video.getStatus());
     }
 
@@ -92,8 +92,8 @@ public class VideoService {
         return videoMapper.toResponse(video);
     }
 
-    public VideoDownload downloadVideo(UUID videoId) {
-        Video video = requireVideo(videoId);
+    public VideoDownload downloadVideo(UUID videoId, UUID userId) {
+        Video video = requireOwnedVideo(videoId, userId);
         try {
             InputStream stream = storageService.download(
                     new StoredObject(video.getBucket(), video.getObjectKey()));
@@ -109,12 +109,7 @@ public class VideoService {
     }
 
     public void deleteVideo(UUID videoId, UUID userId) {
-        Video video = requireVideo(videoId);
-
-        if (!video.getOwner().getId().equals(userId)) {
-            throw new ForbiddenException("Not your video!");
-        }
-
+        Video video = requireOwnedVideo(videoId, userId);
         storageService.delete(video.getObjectKey());
         videoRepository.delete(video);
     }
@@ -155,6 +150,15 @@ public class VideoService {
     private Video requireVideo(UUID videoId) {
         return videoRepository.findById(videoId)
                 .orElseThrow(() -> new NotFoundException("Video with id '" + videoId + "' not found"));
+    }
+
+    /** Loads the video and asserts the given user owns it, else 403. */
+    private Video requireOwnedVideo(UUID videoId, UUID userId) {
+        Video video = requireVideo(videoId);
+        if (!video.getOwner().getId().equals(userId)) {
+            throw new ForbiddenException("Not your video!");
+        }
+        return video;
     }
 
     private void validateFile(MultipartFile file) {

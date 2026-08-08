@@ -35,3 +35,4 @@ build/
 bruno/secrets/**
 .env
 .ai/
+.agents/

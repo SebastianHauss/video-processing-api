@@ -1,0 +1,16 @@
+meta {
+  name: Get Video Status
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/videos/c95b90a9-2609-40c9-9970-1899ad2e00d2/status
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
