@@ -8,6 +8,7 @@ import com.sebastianhauss.videoplatform.dto.storage.StoredObject;
 import com.sebastianhauss.videoplatform.dto.video.ProcessedVideo;
 import com.sebastianhauss.videoplatform.dto.video.VideoDownload;
 import com.sebastianhauss.videoplatform.dto.video.VideoResponse;
+import com.sebastianhauss.videoplatform.dto.video.VideoStatusResponse;
 import com.sebastianhauss.videoplatform.exception.*;
 import com.sebastianhauss.videoplatform.mapper.VideoMapper;
 import com.sebastianhauss.videoplatform.repository.UserRepository;
@@ -44,6 +45,17 @@ public class VideoService {
 
     public List<VideoResponse> getVideosOfUser(UUID userId) {
         return videoMapper.toResponseList(videoRepository.findVideosByOwner_Id(userId));
+    }
+
+    /** Full metadata for a single video (filename, size, duration, status, ...). */
+    public VideoResponse getVideoMetadata(UUID videoId) {
+        return videoMapper.toResponse(requireVideo(videoId));
+    }
+
+    /** Just the processing state, for cheap polling. */
+    public VideoStatusResponse getVideoStatus(UUID videoId) {
+        Video video = requireVideo(videoId);
+        return new VideoStatusResponse(video.getId(), video.getStatus());
     }
 
     /**

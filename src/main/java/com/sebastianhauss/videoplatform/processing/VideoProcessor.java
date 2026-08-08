@@ -47,7 +47,7 @@ public class VideoProcessor {
 
             String thumbnailKey = null;
             try {
-                tempThumbnail = thumbnailService.generateThumbnail(tempFile);
+                tempThumbnail = thumbnailService.generateThumbnail(tempFile, duration);
                 String thumbObjectKey = "thumbnails/" + video.getObjectKey() + ".png";
                 storageService.uploadFromFile(tempThumbnail, thumbObjectKey, "image/png");
                 thumbnailKey = thumbObjectKey;

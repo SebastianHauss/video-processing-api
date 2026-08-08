@@ -5,17 +5,21 @@ meta {
 }
 
 post {
-  url: {{BASE_URL}}/videos?userId=e298860a-600b-4624-8047-93c1ee7c4c86
+  url: {{BASE_URL}}/videos?userId=7cde90a6-29b5-4d9d-92a4-31e8314e7a73
   body: multipartForm
-  auth: inherit
+  auth: bearer
 }
 
 params:query {
-  userId: e298860a-600b-4624-8047-93c1ee7c4c86
+  userId: 7cde90a6-29b5-4d9d-92a4-31e8314e7a73
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzZWIiLCJpYXQiOjE3ODYxODI0OTgsImV4cCI6MTc4NjI2ODg5OH0.jnw0e7r1u7O2XmZ1MI7rNCJY_tfvLSysZ3YrTAPNENY
 }
 
 body:multipart-form {
-  file: @file(/Users/sebastianhauss/dev/dummy-videos/file_example_MP4_1280_10MG.mp4)
+  file: @file(/Users/sebastianhauss/Downloads/file_example_WMV_1920_9_3MB.wmv) @contentType(video/x-ms-wmv)
 }
 
 settings {

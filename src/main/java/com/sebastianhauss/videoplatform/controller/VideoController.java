@@ -2,6 +2,7 @@ package com.sebastianhauss.videoplatform.controller;
 
 import com.sebastianhauss.videoplatform.dto.video.VideoDownload;
 import com.sebastianhauss.videoplatform.dto.video.VideoResponse;
+import com.sebastianhauss.videoplatform.dto.video.VideoStatusResponse;
 import com.sebastianhauss.videoplatform.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -36,6 +37,16 @@ public class VideoController {
     ) {
         // 202: accepted for asynchronous processing; poll the video's status for readiness
         return ResponseEntity.accepted().body(videoService.uploadVideo(userId, file));
+    }
+
+    @GetMapping("/{videoId}/metadata")
+    public ResponseEntity<VideoResponse> getVideoMetadata(@PathVariable UUID videoId) {
+        return ResponseEntity.ok(videoService.getVideoMetadata(videoId));
+    }
+
+    @GetMapping("/{videoId}/status")
+    public ResponseEntity<VideoStatusResponse> getVideoStatus(@PathVariable UUID videoId) {
+        return ResponseEntity.ok(videoService.getVideoStatus(videoId));
     }
 
     @GetMapping("/{videoId}")
