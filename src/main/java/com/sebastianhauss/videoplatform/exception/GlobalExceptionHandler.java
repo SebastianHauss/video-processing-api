@@ -4,6 +4,7 @@ import com.sebastianhauss.videoplatform.dto.error.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,6 +33,17 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse("Validation failed");
         return buildError(HttpStatus.BAD_REQUEST, message);
+    }
+
+    /**
+     * Method-level authorization failures (e.g. {@code @PreAuthorize}) surface as
+     * {@link AccessDeniedException} at handler invocation, which reaches this advice
+     * rather than the security filter chain. Map it to 403 explicitly so the
+     * catch-all below doesn't turn a denied request into a 500.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        return buildError(HttpStatus.FORBIDDEN, "Access denied");
     }
 
     @ExceptionHandler(Exception.class)
