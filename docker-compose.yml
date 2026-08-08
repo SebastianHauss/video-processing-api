@@ -35,7 +35,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: video
       MINIO_URL: http://minio
       MINIO_PORT: 9000
-      FFMPEG_PATH: /usr/bin/ffmpeg
     depends_on:
       - postgres
       - minio

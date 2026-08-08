@@ -34,7 +34,8 @@ public class VideoController {
             @RequestParam UUID userId,
             @RequestParam MultipartFile file
     ) {
-        return ResponseEntity.ok(videoService.uploadVideo(userId, file));
+        // 202: accepted for asynchronous processing; poll the video's status for readiness
+        return ResponseEntity.accepted().body(videoService.uploadVideo(userId, file));
     }
 
     @GetMapping("/{videoId}")

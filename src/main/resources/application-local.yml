@@ -6,11 +6,12 @@ spring:
     password: video
   jpa:
     hibernate:
-      ddl-auto: update
+      # Flyway owns the schema here too; validate against it.
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
     show-sql: true
-
-ffmpeg:
-  path: ffmpeg
+  flyway:
+    # Adopt an existing local DB that predates Flyway instead of erroring on it.
+    baseline-on-migrate: true

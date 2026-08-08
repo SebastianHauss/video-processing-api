@@ -8,3 +8,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+  flyway:
+    # Migrations are Postgres-specific; tests run on H2 with Hibernate-generated schema.
+    enabled: false

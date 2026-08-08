@@ -6,6 +6,10 @@ spring:
     multipart:
       max-file-size: 500MB
       max-request-size: 500MB
+  jpa:
+    hibernate:
+      # Schema is owned by Flyway; Hibernate only checks the entities match it.
+      ddl-auto: validate
       
 minio:
   url: http://localhost
@@ -15,7 +19,10 @@ minio:
   bucket: videos
 
 ffmpeg:
-  path: /usr/bin/ffmpeg
+  path: ${FFMPEG_PATH:ffmpeg}
+
+processing:
+  poll-interval-ms: 5000
 
 jwt:
   secret: 2FyufRkgccx+HkVvA/83x8B1dLFrD3LjCg+3IOJhsV0=

@@ -140,23 +140,23 @@
             <version>0.13.0</version>
             <scope>runtime</scope>
         </dependency>
-        <!-- Video metadata extraction -->
+        <!-- JAVE (ffmpeg wrapper) — core API only. The ffmpeg binary is provided
+             by the host/image (see SystemFFmpegLocator), not the bundled
+             jave-nativebin jars. -->
         <dependency>
             <groupId>ws.schild</groupId>
             <artifactId>jave-core</artifactId>
             <version>3.5.0</version>
         </dependency>
-        <!-- Source: https://mvnrepository.com/artifact/ws.schild/jave-nativebin-osx64 -->
+
+        <!-- Database migrations -->
         <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-nativebin-osx64</artifactId>
-            <version>3.5.0</version>
-            <scope>compile</scope>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-nativebin-linux64</artifactId>
-            <version>3.5.0</version>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
     </dependencies>
 

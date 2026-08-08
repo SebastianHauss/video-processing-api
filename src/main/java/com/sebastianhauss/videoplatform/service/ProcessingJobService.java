@@ -18,6 +18,8 @@ import java.util.List;
 @Slf4j
 public class ProcessingJobService {
 
+    private static final int MAX_RETRIES = 3;
+
     private final ProcessingJobRepository jobRepository;
 
     public ProcessingJob createJob(Video video, ProcessingJobType type) {
@@ -41,29 +43,34 @@ public class ProcessingJobService {
     @Transactional
     public void markAsCompleted(ProcessingJob job) {
         job.setStatus(ProcessingJobStatus.COMPLETED);
-        job.setStartedAt(Instant.now());
-        jobRepository.save(job);
-    }
-
-    @Transactional
-    public void markAsFailed(ProcessingJob job, String errorMessage) {
-        job.setStatus(ProcessingJobStatus.FAILED);
         job.setFinishedAt(Instant.now());
-        job.setErrorMessage(errorMessage);
-        job.setRetryCount(job.getRetryCount() + 1);
         jobRepository.save(job);
     }
 
+    /**
+     * Records a failed attempt. Requeues the job as PENDING for another attempt
+     * until {@link #MAX_RETRIES} is reached, after which it stays FAILED.
+     */
     @Transactional
-    public void retryJob(ProcessingJob job) {
-        job.setStatus(ProcessingJobStatus.PENDING);
-        job.setStartedAt(null);
-        job.setFinishedAt(null);
-        job.setErrorMessage(null);
+    public void recordFailure(ProcessingJob job, String errorMessage) {
+        job.setRetryCount(job.getRetryCount() + 1);
+        job.setErrorMessage(errorMessage);
+        job.setFinishedAt(Instant.now());
+
+        if (job.getRetryCount() >= MAX_RETRIES) {
+            job.setStatus(ProcessingJobStatus.FAILED);
+        } else {
+            job.setStatus(ProcessingJobStatus.PENDING);
+            job.setStartedAt(null);
+        }
         jobRepository.save(job);
+    }
+
+    public boolean isExhausted(ProcessingJob job) {
+        return job.getRetryCount() >= MAX_RETRIES;
     }
 
     public List<ProcessingJob> getPendingJobs() {
-        return jobRepository.findPendingJobsWithRetries(ProcessingJobStatus.PENDING, 3);
+        return jobRepository.findPendingJobsWithRetries(ProcessingJobStatus.PENDING, MAX_RETRIES);
     }
 }

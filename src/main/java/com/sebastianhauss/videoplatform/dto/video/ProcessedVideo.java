@@ -1,9 +1,10 @@
 package com.sebastianhauss.videoplatform.dto.video;
 
-import com.sebastianhauss.videoplatform.dto.storage.StoredObject;
-
+/**
+ * Result of processing a stored video: the metadata extracted and the key of
+ * the generated thumbnail (null if thumbnail generation failed).
+ */
 public record ProcessedVideo(
-        StoredObject storedObject,
         long durationMillis,
         String contentType,
         String thumbnailKey
